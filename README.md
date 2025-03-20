@@ -27,6 +27,7 @@ After activating your virtual environment, install the required packages:
 ```bash
 pip install langchain-openai
 pip install python-dotenv
+pip install supabase
 ```
 
 ### Why install langchain-openai?
@@ -44,10 +45,12 @@ The `langchain-openai` package is essential for this project because:
 ### Creating a .env file
 
 1. Create a file named `.env` in the root directory of your project
-2. Add your API key in the following format:
+2. Add your API keys in the following format:
 
 ```
-OPENAI_API_KEY=your_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
+SUPABASE_URL=your_supabase_url_here
+SUPABASE_KEY=your_supabase_api_key_here
 ```
 
 ### How to link .env to your Python code
@@ -64,13 +67,15 @@ import os
 # Load environment variables from .env file
 load_dotenv()
 
-# Access your API key
-api_key = os.getenv("OPENAI_API_KEY")
+# Access your API keys
+openai_api_key = os.getenv("OPENAI_API_KEY")
+supabase_url = os.getenv("SUPABASE_URL")
+supabase_key = os.getenv("SUPABASE_KEY")
 
 # Now you can use the api_key with LangChain
 from langchain_openai import OpenAI
 
-llm = OpenAI(api_key=api_key)
+llm = OpenAI(api_key=openai_api_key)
 # or if OPENAI_API_KEY is set, LangChain will use it automatically
 # llm = OpenAI()
 ```
@@ -83,3 +88,34 @@ Always add `.env` to your `.gitignore` file to prevent accidentally committing y
 # .gitignore
 .env
 ```
+
+## Setting Up Supabase for Chat History
+
+### Why use Supabase for chat history?
+
+1. **Persistence**: Stores conversation history in a reliable database
+2. **Scalability**: Supabase is built on PostgreSQL, providing enterprise-grade database capabilities
+3. **Easy Management**: Provides a user-friendly interface for viewing and managing data
+4. **Real-time Capabilities**: Supports real-time subscriptions for live updates
+5. **Authentication**: Includes built-in auth if you want to associate chat histories with users
+
+### Steps to set up Supabase
+
+1. Create a Supabase account at [https://supabase.com](https://supabase.com)
+2. Create a new Supabase project
+3. In the SQL Editor, create a table for storing chat messages:
+
+```sql
+CREATE TABLE chat_messages (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    session_id TEXT NOT NULL,
+    message_type TEXT NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_chat_messages_session_id ON chat_messages(session_id);
+```
+
+4. Go to Project Settings > API to get your Supabase URL and API Key
+5. Add these to your `.env` file as shown above
